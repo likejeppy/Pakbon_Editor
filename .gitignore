@@ -1,9 +1,5 @@
-# Ignore everything
-/*
-
-# Unignore specific files
-!/README.md
-!/.gitattributes
-!/.gitignore
-!/Editor/config.json
-!/Editor/HEMA_Pakbon_Editor.pyw
+# Ignore: 
+Pakbon.xlsx
+HEMA_Launcher.pyw - Shortcut.lnk
+HEMA_Launcher.pyw
+Editor/app.log
