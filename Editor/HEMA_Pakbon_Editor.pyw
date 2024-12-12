@@ -1,9 +1,6 @@
-from math import fabs
-import select
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import filedialog, simpledialog, messagebox, ttk
-from turtle import width
+from tkinter import filedialog, simpledialog, messagebox
 import openpyxl
 from openpyxl.styles import PatternFill
 from datetime import datetime
@@ -11,7 +8,6 @@ import os
 import json
 import re
 import webbrowser
-import getpass
 import logging
 
 # Columns
@@ -47,8 +43,10 @@ logging.basicConfig(
     datefmt="%d-%m-%Y %H:%M:%S",  # Date format
 )
 
-logging.info("*******************************************************************************************************")  # Initial log entry
+logging.info(
+    "*******************************************************************************************************")  # Initial log entry
 logging.info("Application started.")
+
 
 def load_config():
     logging.info("Performing function 'load_config'.")
@@ -63,12 +61,14 @@ def load_config():
         logging.warning("Config file does not exist, returning default configuration.")
         return {}
 
+
 def save_config(config):
     logging.info("Performing function 'save_config'.")
     try:
         # Convert absolute path to relative path
         if "main_file_path" in config and config["main_file_path"] is not None:
-            config["main_file_path"] = os.path.relpath(config["main_file_path"], start=os.path.dirname(os.path.abspath(__file__)))
+            config["main_file_path"] = os.path.relpath(config["main_file_path"],
+                                                       start=os.path.dirname(os.path.abspath(__file__)))
 
         with open(config_file, "w") as f:
             json.dump(config, f, indent=4)
@@ -89,6 +89,7 @@ def load_workbook_with_fallback(file_path):
         messagebox.showerror("Error", f"Er heeft een error plaatsgevonden: {e}")
     return None
 
+
 def browse_main_file():
     logging.info("Performing function 'browse_main_file'.")
     global main_file_path, main_workbook
@@ -104,6 +105,7 @@ def browse_main_file():
             show_file_button.config(bg="lightblue")
             search_order_button.config(bg="lightblue")
     logging.info("Successfully performed function 'browse_main_file'.")
+
 
 def reload_main_workbook():
     logging.info("Performing function 'reload_main_workbook'.")
@@ -125,6 +127,7 @@ def reload_main_workbook():
         logging.warning("No file path set. Cannot reload workbook.")
         # messagebox.showwarning("Waarschuwing", "Geen hoofdbestand ingesteld om opnieuw te laden.")
 
+
 def browse_new_file():
     logging.info("Performing function 'browse_new_file'.")
     global new_file_path, new_workbook
@@ -136,21 +139,27 @@ def browse_new_file():
             new_file_button.config(text="Nieuwe Pakbon Geladen", bg="lightgreen")
     logging.info("Successfully performed function 'browse_new_file'.")
 
+
 def remove_time_if_datetime(value):
     logging.info("Performing remove_time_if_datetime.")
     return value.date() if isinstance(value, datetime) else value
 
+
 def read_column_data(sheet, column):
     logging.info("Performing function 'read_column_data'.")
-    return [remove_time_if_datetime(row[0]) for row in sheet.iter_rows(min_col=column, max_col=column, values_only=True)]
+    return [remove_time_if_datetime(row[0]) for row in
+            sheet.iter_rows(min_col=column, max_col=column, values_only=True)]
+
 
 def style_first_row(sheet):
     logging.info("Performing function 'style_first_row'.")
     # Remove styles and make the first row bold
     for cell in sheet[1]:  # 1 refers to the first row (0-indexed internally)
-        cell.fill = openpyxl.styles.PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")  # Clear fill color
-        cell.font = openpyxl.styles.Font(bold=True)  
+        cell.fill = openpyxl.styles.PatternFill(start_color="FFFFFF", end_color="FFFFFF",
+                                                fill_type="solid")  # Clear fill color
+        cell.font = openpyxl.styles.Font(bold=True)
     logging.info("Successfully performed function 'style_first_row'.")
+
 
 def check_cell_color(cell):
     """
@@ -167,9 +176,9 @@ def check_cell_color(cell):
     # OpenPyxl prepends 'FF' to RGB color codes
     logging.info("Performing function 'check_cell_color'.")
     green_rgb_00 = "0090EE90"  # Green RGB with '00' prepended
-    green_rgb_ff = "FF90EE90" # Green RGB with 'ff' prepended
-    red_rgb_00 = "00FFC0C0"    # Red RGB with '00' prepended
-    red_rgb_ff = "FFFFC0C0" # Red RGB with 'FF' prepended
+    green_rgb_ff = "FF90EE90"  # Green RGB with 'ff' prepended
+    red_rgb_00 = "00FFC0C0"  # Red RGB with '00' prepended
+    red_rgb_ff = "FFFFC0C0"  # Red RGB with 'FF' prepended
 
     if hasattr(cell.fill, 'start_color') and hasattr(cell.fill, 'end_color'):
         start_color = getattr(cell.fill.start_color, 'rgb', None)
@@ -188,6 +197,7 @@ def check_cell_color(cell):
 
     logging.info("The cell does not have a green or red background.")
     return "none"
+
 
 def add_data():
     browse_new_file()
@@ -212,7 +222,7 @@ def add_data():
 
     if sheet_name in main_workbook.sheetnames:
         response = messagebox.askyesno("Waarschuwing", f"Pakbon met de datum: {sheet_name}\nbestaat al, toch doorgaan?")
-        if not response: #response = no
+        if not response:  # response = no
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             return
 
@@ -220,13 +230,14 @@ def add_data():
     selected_indices = confirm_orders(new_sheet_data[1:])
     if selected_indices == []:
         response = messagebox.askyesno("Error", "Geen ordernummer afgevinkt, toch toevoegen?")
-        if not response: #response = no
+        if not response:  # response = no
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             return
 
-    #messagebox.showerror("test", f"Selected indices: {selected_indices}")  # Debugging selected indices
+    # messagebox.showerror("test", f"Selected indices: {selected_indices}")  # Debugging selected indices
     if sheet_name in main_workbook.sheetnames:
-        response = messagebox.askyesnocancel("Waarschuwing", f"Oude data overschrijven of\ndata toevoegen onder nieuwe naam?")
+        response = messagebox.askyesnocancel("Waarschuwing",
+                                             f"Oude data overschrijven of\ndata toevoegen onder nieuwe naam?")
         if response == True:
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             del main_workbook[sheet_name]
@@ -261,9 +272,11 @@ def add_data():
 
             # Highlight selected rows in green, others in red
             if (row_idx) - 2 in selected_indices:  # Adjust for zero-based index
-                cell.fill = openpyxl.styles.PatternFill(start_color="90EE90", end_color="90EE90", fill_type="solid")  # Light green
+                cell.fill = openpyxl.styles.PatternFill(start_color="90EE90", end_color="90EE90",
+                                                        fill_type="solid")  # Light green
             else:
-                cell.fill = openpyxl.styles.PatternFill(start_color="FFC0C0", end_color="FFC0C0", fill_type="solid")  # Light red
+                cell.fill = openpyxl.styles.PatternFill(start_color="FFC0C0", end_color="FFC0C0",
+                                                        fill_type="solid")  # Light red
 
             # Adjust column widths
             if value:
@@ -282,12 +295,15 @@ def add_data():
     new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
     reload_main_workbook()
 
+
 def search_order_dialog():
     global searched_order_number
-    order_number = simpledialog.askstring("Bestelling Opzoeken", "Vul het ordernummer in:", initialvalue=searched_order_number)
+    order_number = simpledialog.askstring("Bestelling Opzoeken", "Vul het ordernummer in:",
+                                          initialvalue=searched_order_number)
     if not order_number:
         return
     return order_number
+
 
 def search_order():
     config = load_config()
@@ -296,7 +312,7 @@ def search_order():
     while not saved_main_file_path:
         # Show error message
         response = messagebox.askyesno("Error", "Bestand niet correct geladen! Wil je een bestand selecteren?")
-    
+
         if response:  # If user clicks 'Yes', open the file dialog
             browse_main_file()  # This function should update the config file
             config = load_config()  # Reload the config after file selection
@@ -356,15 +372,19 @@ def search_order():
                                 if left_cell.value:
                                     if isinstance(left_cell.value, datetime):
                                         delivery_date = left_cell.value.strftime("%d-%m-%Y")
-                                        results.append(f"Bestelling gevonden op pakbon: {delivery_date}.\nLeverstatus is onbekend.")
+                                        results.append(
+                                            f"Bestelling gevonden op pakbon: {delivery_date}.\nLeverstatus is onbekend.")
                                     else:
-                                        results.append(f"Bestelling gevonden op pakbon: {left_cell.value}.\nLeverstatus is onbekend.")
+                                        results.append(
+                                            f"Bestelling gevonden op pakbon: {left_cell.value}.\nLeverstatus is onbekend.")
                                 else:
-                                    results.append("Bestelling gevonden, maar kon geen datum koppelen.\nLeverstatus is onbekend.")
+                                    results.append(
+                                        "Bestelling gevonden, maar kon geen datum koppelen.\nLeverstatus is onbekend.")
                                 print("The cell does not have a red or green background.")
                             break
                         except Exception as e:
-                            logging.error(f"Error in search_order after searching for order: {searched_order_number}. Error: {str(e)}")
+                            logging.error(
+                                f"Error in search_order after searching for order: {searched_order_number}. Error: {str(e)}")
                             messagebox.showerror("Error in search_orders", str(e))
         if results:
             logging.info(f"Searched for order: {searched_order_number}, order was successfully found.")
@@ -373,6 +393,7 @@ def search_order():
         else:
             logging.info(f"Searched for order: {searched_order_number}, but order not found.")
             messagebox.showerror("Bestelling Niet Gevonden", "Het ordernummer is niet gevonden.")
+
 
 def confirm_orders(data):
     logging.info("Performing function 'confirm_orders'.")
@@ -506,9 +527,11 @@ def confirm_orders(data):
     logging.info("Successfully performed function 'confirm_orders'.")
     return selected_indices
 
+
 def testfunc():
     global main_workbook
     messagebox.showinfo("Workbook", f"{main_workbook}")
+
 
 def test_confirm_orders():
     logging.info("Performing function 'test_confirm_orders'.")
@@ -518,7 +541,7 @@ def test_confirm_orders():
         ("Order2", "ProductB", "CustomerY"),
         ("Order3", "ProductC", "CustomerZ"),
     ]
-    
+
     # Call the confirm_orders function with the mock data
     selected_orders = confirm_orders(mock_data)
 
@@ -528,6 +551,7 @@ def test_confirm_orders():
     else:
         messagebox.showinfo("Geen Selectie", "Er zijn geen orders geselecteerd.")
 
+
 def open_and_display_excel_file():
     logging.info("Performing function 'open_and_display_excel_file'.")
     config = load_config()
@@ -536,7 +560,7 @@ def open_and_display_excel_file():
     while not saved_main_file_path:
         # Show error message
         response = messagebox.askyesno("Error", "Bestand niet correct geladen! Wil je een bestand selecteren?")
-    
+
         if response:  # If user clicks 'Yes', open the file dialog
             browse_main_file()  # This function should update the config file
             config = load_config()  # Reload the config after file selection
@@ -566,18 +590,20 @@ def open_and_display_excel_file():
         logging.error("Error in function 'open_and_display_excel_file'.")
         messagebox.showerror("Error", "Bestand is niet correct geladen!")
 
+
 def open_in_excel_online(file_url):
     logging.info("Performing function 'open_in_excel_online'.")
-    edge_path="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+    edge_path = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
     webbrowser.register('edge', None, webbrowser.BackgroundBrowser(edge_path))
     webbrowser.get('edge').open(f"{file_url}")
     logging.info("Successfully performed function 'open_in_excel_online'.")
+
 
 def clear_logs_file(log_file_path="app.log"):
     logging.info("Performing function 'clear_logs_file'.")
     """
     Clears all logs in the specified log file.
-    
+
     Parameters:
         log_file_path (str): The path to the log file..
     """
@@ -587,6 +613,7 @@ def clear_logs_file(log_file_path="app.log"):
         messagebox.showinfo("Succes", "Logs met succes verwijderd!")
     except Exception as e:
         messagebox.showerror(f"Error clearing logs: {e}")
+
 
 def set_latest_date():
     logging.info("Performing function 'set_latest_date'.")
@@ -633,7 +660,6 @@ root.title("HEMA Pakbon - jeffvh")
 logging.info("Loading config file.")
 config = load_config()
 
-
 frame = tk.Frame(root, padx=20, pady=10)
 frame.pack()
 
@@ -642,11 +668,8 @@ tk.Label(frame, text="HEMA Pakbon", font=("Arial", 16)).grid(row=0, column=0, co
 lastloaded = tk.Label(frame, text="", font=("Arial", 10))
 lastloaded.grid(row=1, column=0, columnspan=2, pady=(0, 0))
 
-
-
 # Check if there's a saved main file path
 saved_main_file_path = config.get('main_file_path', None)
-
 
 if saved_main_file_path:
     main_file_path = saved_main_file_path
@@ -671,35 +694,40 @@ else:
     search_order_button_color = "lightgray"
     new_file_button_color = "lightgray"
 
-
 # Set window position if it exists in the config
 window_position = config.get('window_position', (100, 100))  # Default to (100, 100)
 root.geometry(f"+{window_position[0]}+{window_position[1]}")
-root.resizable(False,False)
+root.resizable(False, False)
 
 # Test confirm_orders button
 # tk.Button(frame, text="Test Order Selectie", command=test_confirm_orders, width=20, bg="lightblue").grid(row=3, column=0, pady=5)
 
 # Main file browse button
-main_file_button = tk.Button(frame, text=main_file_button_text, command=browse_main_file, width=20, bg=main_file_button_color)
+main_file_button = tk.Button(frame, text=main_file_button_text, command=browse_main_file, width=20,
+                             bg=main_file_button_color)
 main_file_button.grid(row=2, column=0, pady=5)
 
 # New file browse button
-new_file_button = tk.Button(frame, text="Controleer Nieuwe Pakbon", command=add_data, width=20, bg=new_file_button_color)
+new_file_button = tk.Button(frame, text="Controleer Nieuwe Pakbon", command=add_data, width=20,
+                            bg=new_file_button_color)
 new_file_button.grid(row=2, column=1, pady=5)
 
 # Search order button
-search_order_button = tk.Button(frame, text="Zoek Ordernummer", command=search_order, width=20, bg=search_order_button_color)
+search_order_button = tk.Button(frame, text="Zoek Ordernummer", command=search_order, width=20,
+                                bg=search_order_button_color)
 search_order_button.grid(row=3, column=0, pady=5)
 
 # Add data button
 # tk.Button(frame, text="Controleer Nieuwe Pakbon", command=add_data, width=20, bg="lightblue").grid(row=2, column=1, pady=5)
 
 # Open main file online button
-show_file_button = tk.Button(frame, text="Open Bestand Online", command=open_and_display_excel_file, width=20, bg=show_file_button_color)
+show_file_button = tk.Button(frame, text="Open Bestand Online", command=open_and_display_excel_file, width=20,
+                             bg=show_file_button_color)
 show_file_button.grid(row=4, column=0, pady=5)
 
-tk.Button(frame, text="Verwijder Logs", command=clear_logs_file, width=20, bg="lightblue").grid(row=3, column=1, pady=5) # clear log button, debug only?
+tk.Button(frame, text="Verwijder Logs", command=clear_logs_file, width=20, bg="lightblue").grid(row=3, column=1,
+                                                                                                pady=5)  # clear log button, debug only?
+
 
 # tk.Button(frame, text="Test", command=testfunc, width=20, bg="lightblue").grid(row=3, column=1, pady=5) # test button
 
@@ -711,8 +739,10 @@ def on_close():
     config['main_file_path'] = main_file_path  # Save the main file path
     save_config(config)
     logging.info("Successfully performed function 'on_close'.")
-    logging.info("*******************************************************************************************************")  # Last log entry
+    logging.info(
+        "*******************************************************************************************************")  # Last log entry
     root.destroy()
+
 
 root.protocol("WM_DELETE_WINDOW", on_close)
 
