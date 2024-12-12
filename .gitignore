@@ -1,7 +1,9 @@
-# Ignore all files in the directory
+# Ignore everything
 /*
 
-# Do not ignore specific files
-!README.md
-!config.json
-!project.pyw
+# Unignore specific files
+!/README.md
+!/.gitattributes
+!/.gitignore
+!/Editor/config.json
+!/Editor/HEMA_Pakbon_Editor.pyw
