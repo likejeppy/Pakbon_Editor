@@ -104,6 +104,7 @@ def browse_main_file():
             main_file_button.config(text="Hoofdbestand Geladen", bg="lightgreen")
             show_file_button.config(bg="lightblue")
             search_order_button.config(bg="lightblue")
+            new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
     logging.info("Successfully performed function 'browse_main_file'.")
 
 
