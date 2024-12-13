@@ -138,7 +138,10 @@ def browse_new_file():
         new_workbook = load_workbook_with_fallback(new_file_path)
         if new_workbook:
             new_file_button.config(text="Nieuwe Pakbon Geladen", bg="lightgreen")
+            logging.info("Successfully performed function 'browse_new_file'.")
+            return True
     logging.info("Successfully performed function 'browse_new_file'.")
+    return False
 
 
 def remove_time_if_datetime(value):
@@ -201,7 +204,10 @@ def check_cell_color(cell):
 
 
 def add_data():
-    browse_new_file()
+    is_file_selected = browse_new_file()
+    if not is_file_selected:
+        return
+    # messagebox.showinfo("test", str(test_bool))
     logging.info("Performing function 'add_data'.")
     if not main_workbook or not new_workbook:
         messagebox.showerror("Error", "Zowel het hoofdbestand als de nieuwe pakbon moeten zijn geladen.")
@@ -234,7 +240,7 @@ def add_data():
         if not response:  # response = no
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             return
-
+    sheet_date = sheet_name
     # messagebox.showerror("test", f"Selected indices: {selected_indices}")  # Debugging selected indices
     if sheet_name in main_workbook.sheetnames:
         response = messagebox.askyesnocancel("Waarschuwing",
@@ -295,6 +301,7 @@ def add_data():
     messagebox.showinfo("Success", f"Data met succes toegevoegd aan sheet '{sheet_name}'!")
     new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
     reload_main_workbook()
+    lastloaded.config(text=f"Meest recente levering:\n{sheet_date}")
 
 
 def search_order_dialog():
@@ -628,15 +635,27 @@ def set_latest_date():
                 sheet_names = main_workbook.sheetnames
 
                 # Parse sheet names as dates and find the latest date
+                # List of supported date formats
+                date_formats = ["%d-%m-%Y", "%m-%d-%Y"]
                 latest_date = None
                 for name in sheet_names:
-                    try:
-                        # Attempt to parse the sheet name as a date in d-m-Y format
-                        date = datetime.strptime(name, "%d-%m-%Y")
-                        if latest_date is None or date > latest_date:
-                            latest_date = date
-                    except ValueError:
-                        logging.warning(f"Sheet name '{name}' is not a valid date format.")
+                    for date_format in date_formats:
+                        try:
+                            # Attempt to parse the sheet name as a date in the current format
+                            date = datetime.strptime(name, date_format)
+                            if latest_date is None or date > latest_date:
+                                latest_date = date
+                            break  # Exit the loop if parsing succeeds
+                        except ValueError:
+                            continue  # Try the next format if the current one fails
+                    else:
+                        # Log a warning if none of the formats matched
+                        logging.warning(f"Sheet name '{name}' is not a valid date format in any of {date_formats}")
+
+                if latest_date:
+                    print(f"Latest date: {latest_date.strftime('%d-%m-%Y')}")
+                else:
+                    print("No valid dates found.")
 
                 # Update the label with the latest date
                 if latest_date:
