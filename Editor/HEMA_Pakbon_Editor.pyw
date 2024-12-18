@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import filedialog, simpledialog, messagebox
+from tkinter import filedialog, simpledialog, messagebox, ttk
 import openpyxl
 from openpyxl.styles import PatternFill
 from datetime import datetime
@@ -47,7 +47,6 @@ logging.info(
     "*******************************************************************************************************")  # Initial log entry
 logging.info("Application started.")
 
-
 def load_config():
     logging.info("Performing function 'load_config'.")
     config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
@@ -60,7 +59,6 @@ def load_config():
     else:
         logging.warning("Config file does not exist, returning default configuration.")
         return {}
-
 
 def save_config(config):
     logging.info("Performing function 'save_config'.")
@@ -76,7 +74,6 @@ def save_config(config):
     except Exception as e:
         logging.error(f"Error saving config file at {config_file}: {e}")
 
-
 def load_workbook_with_fallback(file_path):
     logging.info("Performing function 'load_workbook_with_fallback'.")
     try:
@@ -88,7 +85,6 @@ def load_workbook_with_fallback(file_path):
         logging.error(f"Er heeft een error plaatsgevonden: {e}")
         messagebox.showerror("Error", f"Er heeft een error plaatsgevonden: {e}")
     return None
-
 
 def browse_main_file():
     logging.info("Performing function 'browse_main_file'.")
@@ -106,7 +102,6 @@ def browse_main_file():
             search_order_button.config(bg="lightblue")
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
     logging.info("Successfully performed function 'browse_main_file'.")
-
 
 def reload_main_workbook():
     logging.info("Performing function 'reload_main_workbook'.")
@@ -128,7 +123,6 @@ def reload_main_workbook():
         logging.warning("No file path set. Cannot reload workbook.")
         # messagebox.showwarning("Waarschuwing", "Geen hoofdbestand ingesteld om opnieuw te laden.")
 
-
 def browse_new_file():
     logging.info("Performing function 'browse_new_file'.")
     global new_file_path, new_workbook
@@ -143,17 +137,14 @@ def browse_new_file():
     logging.info("Successfully performed function 'browse_new_file'.")
     return False
 
-
 def remove_time_if_datetime(value):
     logging.info("Performing remove_time_if_datetime.")
     return value.date() if isinstance(value, datetime) else value
-
 
 def read_column_data(sheet, column):
     logging.info("Performing function 'read_column_data'.")
     return [remove_time_if_datetime(row[0]) for row in
             sheet.iter_rows(min_col=column, max_col=column, values_only=True)]
-
 
 def style_first_row(sheet):
     logging.info("Performing function 'style_first_row'.")
@@ -164,8 +155,8 @@ def style_first_row(sheet):
         cell.font = openpyxl.styles.Font(bold=True)
     logging.info("Successfully performed function 'style_first_row'.")
 
-
 def check_cell_color(cell):
+    logging.info("Performing function 'check_cell_color'.")
     """
     Check the background color of the given cell.
 
@@ -202,13 +193,12 @@ def check_cell_color(cell):
     logging.info("The cell does not have a green or red background.")
     return "none"
 
-
 def add_data():
+    logging.info("Performing function 'add_data'.")
     is_file_selected = browse_new_file()
     if not is_file_selected:
         return
     # messagebox.showinfo("test", str(test_bool))
-    logging.info("Performing function 'add_data'.")
     if not main_workbook or not new_workbook:
         messagebox.showerror("Error", "Zowel het hoofdbestand als de nieuwe pakbon moeten zijn geladen.")
         return
@@ -236,7 +226,7 @@ def add_data():
     # Prompt user to confirm orders
     selected_indices = confirm_orders(new_sheet_data[1:])
     if selected_indices == []:
-        response = messagebox.askyesno("Error", "Geen ordernummer afgevinkt, toch toevoegen?")
+        response = messagebox.askyesno("Waarschuwing", "Geen ordernummer afgevinkt, toch toevoegen?")
         if not response:  # response = no
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             return
@@ -244,7 +234,7 @@ def add_data():
     # messagebox.showerror("test", f"Selected indices: {selected_indices}")  # Debugging selected indices
     if sheet_name in main_workbook.sheetnames:
         response = messagebox.askyesnocancel("Waarschuwing",
-                                             f"Oude data overschrijven of\ndata toevoegen onder nieuwe naam?")
+                                             f"Oude data overschrijven?")
         if response == True:
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             del main_workbook[sheet_name]
@@ -301,24 +291,48 @@ def add_data():
     messagebox.showinfo("Success", f"Data met succes toegevoegd aan sheet '{sheet_name}'!")
     new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
     reload_main_workbook()
-    lastloaded.config(text=f"Meest recente levering:\n{sheet_date}")
 
+class SearchOrderDialog(simpledialog.Dialog):
+    logging.info("Perofrming class 'SearchOrderDialog'.")
+    def __init__(self, parent, title=None, initial_value=""):
+        self.initial_value = initial_value
+        super().__init__(parent, title)
+    def body(self, master):
+        """Create dialog body."""
+        self.title("Bestelling Opzoeken")
+        self.resizable(False, False)
+
+        # Centered label
+        self.label = tk.Label(self, text="Vul het ordernummer in:", font=("Arial", 12))
+        self.label.pack(pady=(20, 5), padx=20)
+
+        # Centered entry field
+        self.entry = ttk.Entry(self, font=("Arial", 12), justify="center")
+        self.entry.pack(pady=(0, 20), padx=20, ipadx=30)
+        self.entry.insert(0, self.initial_value)  # Set initial value
+
+        return self.entry  # Focus on the entry field
+    def apply(self):
+        """Handle when the dialog is accepted."""
+        self.result = self.entry.get()
 
 def search_order_dialog():
+    logging.info("Performing function 'search_order_dialog'.")
+    """Show a dialog to search for an order number."""
     global searched_order_number
-    order_number = simpledialog.askstring("Bestelling Opzoeken", "Vul het ordernummer in:",
-                                          initialvalue=searched_order_number)
-    if not order_number:
-        return
-    return order_number
-
+    dialog = SearchOrderDialog(root, title="Bestelling Opzoeken", initial_value=searched_order_number)
+    if dialog.result:
+        return dialog.result
+    return None
 
 def search_order():
+    logging.info("Performing function 'search_order'.")
     config = load_config()
     saved_main_file_path = config.get('main_file_path', None)
 
     while not saved_main_file_path:
         # Show error message
+        logging.error("Bestand niet correct geladen in function 'search_order'.")
         response = messagebox.askyesno("Error", "Bestand niet correct geladen! Wil je een bestand selecteren?")
 
         if response:  # If user clicks 'Yes', open the file dialog
@@ -400,8 +414,7 @@ def search_order():
             return
         else:
             logging.info(f"Searched for order: {searched_order_number}, but order not found.")
-            messagebox.showerror("Bestelling Niet Gevonden", "Het ordernummer is niet gevonden.")
-
+            messagebox.showerror("Bestelling Niet Gevonden", f"Het ordernummer: {searched_order_number}\nis niet gevonden.")
 
 def confirm_orders(data):
     logging.info("Performing function 'confirm_orders'.")
@@ -501,7 +514,6 @@ def confirm_orders(data):
     # Confirm button to submit selections
     tk.Button(selection_window, text="Bevestig", font=("Arial", 12), command=on_confirm, bg="lightblue").pack(pady=10,
                                                                                                               fill=tk.X)
-
     # Declare variables for Select/Deselect button functionality
     AllSelected = [False]  # Use a list to make it mutable
     SelectButtonText = tk.StringVar()
@@ -535,11 +547,10 @@ def confirm_orders(data):
     logging.info("Successfully performed function 'confirm_orders'.")
     return selected_indices
 
-
 def testfunc():
+    logging.info("Performing function 'testfunc'.")
     global main_workbook
     messagebox.showinfo("Workbook", f"{main_workbook}")
-
 
 def test_confirm_orders():
     logging.info("Performing function 'test_confirm_orders'.")
@@ -598,14 +609,12 @@ def open_and_display_excel_file():
         logging.error("Error in function 'open_and_display_excel_file'.")
         messagebox.showerror("Error", "Bestand is niet correct geladen!")
 
-
 def open_in_excel_online(file_url):
     logging.info("Performing function 'open_in_excel_online'.")
     edge_path = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
     webbrowser.register('edge', None, webbrowser.BackgroundBrowser(edge_path))
     webbrowser.get('edge').open(f"{file_url}")
     logging.info("Successfully performed function 'open_in_excel_online'.")
-
 
 def clear_logs_file(log_file_path="app.log"):
     logging.info("Performing function 'clear_logs_file'.")
@@ -615,13 +624,15 @@ def clear_logs_file(log_file_path="app.log"):
     Parameters:
         log_file_path (str): The path to the log file..
     """
-    try:
-        with open(log_file_path, 'w') as log_file:
-            log_file.write("")  # Overwrite the file with an empty string
-        messagebox.showinfo("Succes", "Logs met succes verwijderd!")
-    except Exception as e:
-        messagebox.showerror(f"Error clearing logs: {e}")
-
+    response = messagebox.askyesno("Waarschuwing", f"Weet je zeker dat je alle logs wilt verwijderen?\nDeze actie kan niet ongedaan worden.")
+    if response:  # response = yes
+        try:
+            with open(log_file_path, 'w') as log_file:
+                log_file.write("")  # Overwrite the file with an empty string
+            messagebox.showinfo("Succes", "Logs met succes verwijderd!")
+        except Exception as e:
+            messagebox.showerror(f"Error clearing logs: {e}")
+    return
 
 def set_latest_date():
     logging.info("Performing function 'set_latest_date'.")
@@ -671,7 +682,6 @@ def set_latest_date():
         except Exception as e:
             logging.error(f"Error while loading workbook or getting value: {e}")
             messagebox.showerror("Error", f"Error: {e}")
-
 
 # GUI setup
 root = tk.Tk()
@@ -748,7 +758,6 @@ show_file_button.grid(row=4, column=0, pady=5)
 tk.Button(frame, text="Verwijder Logs", command=clear_logs_file, width=20, bg="lightblue").grid(row=3, column=1,
                                                                                                 pady=5)  # clear log button, debug only?
 
-
 # tk.Button(frame, text="Test", command=testfunc, width=20, bg="lightblue").grid(row=3, column=1, pady=5) # test button
 
 # Save window position and file path on close
@@ -762,7 +771,6 @@ def on_close():
     logging.info(
         "*******************************************************************************************************")  # Last log entry
     root.destroy()
-
 
 root.protocol("WM_DELETE_WINDOW", on_close)
 
