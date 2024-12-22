@@ -5,10 +5,14 @@ import openpyxl
 from openpyxl.styles import PatternFill
 from datetime import datetime
 import os
+import sys
+import time
+import shutil
 import json
 import re
 import webbrowser
 import logging
+import requests
 
 # Columns
 col_A = 1
@@ -23,6 +27,9 @@ new_workbook = None
 searched_order_number = "14101"
 entered_password = ""
 main_password = "wachtwoord"
+current_version = "0.1.0"
+update_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/HEMA_Pakbon_Editor.pyw"
+latest_version_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/latest.json"
 
 # Get the directory of the current script
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -52,12 +59,10 @@ logging.info("Application started.")
 def load_config():
     logging.info("Performing function 'load_config'.")
     config_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
-
     if os.path.exists(config_file):
         logging.info("Config file found, loading it.")
         with open(config_file, "r") as f:
             return json.load(f)
-
     else:
         logging.warning("Config file does not exist, returning default configuration.")
         return {}
@@ -75,6 +80,123 @@ def save_config(config):
             logging.info(f"Config file saved successfully at: {config_file}")
     except Exception as e:
         logging.error(f"Error saving config file at {config_file}: {e}")
+
+def get_current_version():
+    logging.info("Performing function 'get_current_version'.")
+    latest_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest.json")
+
+    logging.info(f"Checking for latest version config file at: {latest_file}")
+
+    if os.path.exists(latest_file):
+        logging.info("Latest version config file found, loading it.")
+        try:
+            with open(latest_file, "r") as f:
+                file_content = f.read().strip()  # Read and strip any whitespace from the content
+
+                if not file_content:  # If the content is empty
+                    logging.warning(f"{latest_file} is empty, updating it with default values.")
+                    # Write the default configuration to the file
+                    default_config = {"version": current_version}
+                    with open(latest_file, "w") as f_write:
+                        json.dump(default_config, f_write, indent=4)
+                    logging.info(f"Updated {latest_file} with default values.")
+                    return default_config
+
+                logging.info("Successfully loaded latest file config and its values.")
+
+            # Ensure 'version' key exists in the config
+            if "version" not in config:
+                logging.warning(f"'version' key missing in config, setting default version {current_version}.")
+                config["version"] = current_version
+            return config
+        except json.JSONDecodeError as e:
+            logging.error(f"Error reading JSON from {latest_file}: {e}")
+            return {"version": current_version}
+    else:
+        logging.warning(f"{latest_file} does not exist, creating it with default values.")
+        # Write the default configuration to the file
+        default_config = {"version": current_version}
+        with open(latest_file, "w") as f_write:
+            json.dump(default_config, f_write, indent=4)
+        logging.info(f"Created {latest_file} with default values.")
+        return default_config
+
+def fetch_online_version():
+    logging.info("Performing function 'fetch_online_version'")
+    try:
+        # URL to the latest.json file on GitHub
+        online_url = latest_version_url
+        response = requests.get(online_url)
+
+        # Check if the response is successful
+        if response.status_code == 200:
+            # Parse the JSON content
+            online_config = response.json()
+            logging.info(f"Online version info: {online_config}")
+            return online_config
+        else:
+            logging.error(f"Failed to fetch online version info, status code: {response.status_code}")
+            return None
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching online version info: {e}")
+        return None
+
+# Function to check if an update is needed
+def check_for_update():
+    # Retrieve the current version info from the latest.json file on your system
+    config = get_current_version()
+    file_version = config["version"]
+
+    # Fetch the online version info
+    online_config = fetch_online_version()
+
+    if online_config:
+        # Get the online version from the fetched file
+        online_version = online_config.get("version", current_version)
+
+        logging.info(f"Online version: {online_version}")
+
+        # Compare versions (this assumes version strings are comparable, adjust if needed)
+        if online_version > file_version:
+            logging.info("Update found! Downloading the latest version...")
+            response = messagebox.askyesno("Update Beschikbaar", f"Er is een update beschikbaar.\nHuidige versie: {file_version}, nieuwe versie: {online_version}\nWil je nu updaten?")
+            if response:
+                download_update()
+        else:
+            logging.info("No update required, the current version is up-to-date.")
+    else:
+        logging.error("Failed to fetch online version info, cannot check for updates.")
+
+def download_update():
+    try:
+        logging.info(f"Downloading updated file from {update_url}")
+        response = requests.get(update_url)
+
+        if response.status_code == 200:
+            # Save the updated file to a temporary location
+            temp_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HEMA_Pakbon_Editor_updated.pyw")
+
+            # Write the content to the new file
+            with open(temp_file_path, "wb") as f:
+                f.write(response.content)
+            logging.info("Update downloaded and saved successfully.")
+
+            # Close the current script and launch the new one
+            logging.info("Closing current script and launching the updated version.")
+
+            # Use os.execv to relaunch the updated script
+            os.execv(sys.executable,
+                     [sys.executable, temp_file_path])  # This will replace the current script with the new one
+
+            # If os.execv fails (it should not), remove the old file and keep the updated one
+            time.sleep(1)  # Wait for the update process to finish
+            os.remove(os.path.abspath(__file__))  # Remove the old script
+            shutil.move(temp_file_path, os.path.abspath(__file__))  # Replace with the new file
+
+        else:
+            logging.error(f"Failed to download update, status code: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error while downloading update: {e}")
 
 def load_workbook_with_fallback(file_path):
     logging.info("Performing function 'load_workbook_with_fallback'.")
@@ -316,7 +438,7 @@ def add_data():
     reload_main_workbook()
 
 class SearchOrderDialog(simpledialog.Dialog):
-    logging.info("Perofrming class 'SearchOrderDialog'.")
+    logging.info("Setting class 'SearchOrderDialog'.")
     def __init__(self, parent, title=None, initial_value=""):
         self.initial_value = initial_value
         super().__init__(parent, title)
@@ -341,7 +463,7 @@ class SearchOrderDialog(simpledialog.Dialog):
 
 
 class EnterPasswordDialog(simpledialog.Dialog):
-    logging.info("Performing class 'EnterPasswordDialog'.")
+    logging.info("Setting class 'EnterPasswordDialog'.")
 
     def __init__(self, parent, title=None, initial_value=""):
         self.initial_value = initial_value
@@ -754,7 +876,7 @@ def set_latest_date():
 
 # GUI setup
 root = tk.Tk()
-root.title("HEMA Pakbon - jeffvh")
+root.title(f"HEMA Pakbon - jeffvh {current_version}")
 
 logging.info("Loading config file.")
 config = load_config()
@@ -844,5 +966,7 @@ def on_close():
 root.protocol("WM_DELETE_WINDOW", on_close)
 
 set_latest_date()
+get_current_version()
+check_for_update()
 
 root.mainloop()
