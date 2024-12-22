@@ -21,6 +21,8 @@ new_file_path = None
 main_workbook = None
 new_workbook = None
 searched_order_number = "14101"
+entered_password = ""
+main_password = "wachtwoord"
 
 # Get the directory of the current script
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -86,22 +88,43 @@ def load_workbook_with_fallback(file_path):
         messagebox.showerror("Error", f"Er heeft een error plaatsgevonden: {e}")
     return None
 
+def password_main_file():
+    logging.info("Performing function 'password_main_file'.")
+    """Show a dialog to enter the password to browse the main file."""
+    global entered_password
+    if entered_password is None:
+        entered_password = ""
+    dialog = EnterPasswordDialog(root, title="Vul Wachtwoord In", initial_value=entered_password)
+    if dialog.result:
+        return dialog.result
+    return None
+
 def browse_main_file():
     logging.info("Performing function 'browse_main_file'.")
-    global main_file_path, main_workbook
-    main_file_path = filedialog.askopenfilename(title="Selecteer Hoofdbestand",
-                                                filetypes=(("Excel files", "*.xlsx"), ("All files", "*.*")))
-    if main_file_path:
-        main_workbook = load_workbook_with_fallback(main_file_path)
-        if main_workbook:
-            config = load_config()
-            config['main_file_path'] = main_file_path  # Save the selected file path
-            save_config(config)
-            main_file_button.config(text="Hoofdbestand Geladen", bg="lightgreen")
-            show_file_button.config(bg="lightblue")
-            search_order_button.config(bg="lightblue")
-            new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
-    logging.info("Successfully performed function 'browse_main_file'.")
+    global main_password, entered_password
+    while True:
+        entered_password = password_main_file()
+        if entered_password == main_password:
+            global main_file_path, main_workbook
+            main_file_path = filedialog.askopenfilename(title="Selecteer Hoofdbestand",
+                                                        filetypes=(("Excel files", "*.xlsx"), ("All files", "*.*")))
+            if main_file_path:
+                main_workbook = load_workbook_with_fallback(main_file_path)
+                if main_workbook:
+                    config = load_config()
+                    config['main_file_path'] = main_file_path  # Save the selected file path
+                    save_config(config)
+                    main_file_button.config(text="Hoofdbestand Geladen", bg="lightgreen")
+                    show_file_button.config(bg="lightblue")
+                    search_order_button.config(bg="lightblue")
+                    new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
+            logging.info("Successfully performed function 'browse_main_file'.")
+            return
+        elif not entered_password is None:
+            logging.info("Password is wrong, prompting user again.")
+            messagebox.showerror("Error", "Verkeerd wachtwoord opgegeven.")
+        else:
+            return
 
 def reload_main_workbook():
     logging.info("Performing function 'reload_main_workbook'.")
@@ -312,6 +335,52 @@ class SearchOrderDialog(simpledialog.Dialog):
         self.entry.insert(0, self.initial_value)  # Set initial value
 
         return self.entry  # Focus on the entry field
+    def apply(self):
+        """Handle when the dialog is accepted."""
+        self.result = self.entry.get()
+
+
+class EnterPasswordDialog(simpledialog.Dialog):
+    logging.info("Performing class 'EnterPasswordDialog'.")
+
+    def __init__(self, parent, title=None, initial_value=""):
+        self.initial_value = initial_value
+        self.show_password = tk.BooleanVar(value=False)  # Variable to track checkbox state
+        super().__init__(parent, title)
+
+    def body(self, master):
+        """Create dialog body."""
+        self.title("Vul Wachtwoord In")
+        self.resizable(False, False)
+
+        # Centered label
+        self.label = tk.Label(self, text="Vul het wachtwoord in:", font=("Arial", 12))
+        self.label.pack(pady=(20, 5), padx=20)
+
+        # Centered entry field
+        self.entry = ttk.Entry(self, font=("Arial", 12), justify="center", show="*")
+        self.entry.pack(pady=(0, 5), padx=20, ipadx=30)
+        self.entry.insert(0, self.initial_value)  # Set initial value
+
+        # Show password checkbox
+        self.show_password_checkbox = ttk.Checkbutton(
+            self,
+            text="Toon wachtwoord",
+            variable=self.show_password,
+            command=self.toggle_password_visibility
+        )
+        self.show_password_checkbox.pack(pady=(0, 0))
+
+        return self.entry  # Focus on the entry field
+
+    def toggle_password_visibility(self):
+        """Toggle password visibility and return focus to entry."""
+        if self.show_password.get():
+            self.entry.config(show="")  # Show password
+        else:
+            self.entry.config(show="*")  # Hide password
+        self.entry.focus_set()  # Return focus to the entry field
+
     def apply(self):
         """Handle when the dialog is accepted."""
         self.result = self.entry.get()
