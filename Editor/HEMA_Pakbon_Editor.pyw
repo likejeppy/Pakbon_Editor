@@ -6,7 +6,6 @@ from openpyxl.styles import PatternFill
 from datetime import datetime
 import os
 import sys
-import time
 import shutil
 import json
 import re
@@ -27,7 +26,7 @@ new_workbook = None
 searched_order_number = "14101"
 entered_password = ""
 main_password = "wachtwoord"
-current_version = "0.1.0"
+current_version = "0.1.1"
 update_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/HEMA_Pakbon_Editor.pyw"
 latest_version_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/latest.json"
 
@@ -81,40 +80,52 @@ def save_config(config):
     except Exception as e:
         logging.error(f"Error saving config file at {config_file}: {e}")
 
-def get_current_version():
-    logging.info("Performing function 'get_current_version'.")
+def set_current_version():
+    logging.info("Performing function 'set_current_version'.")
     latest_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "latest.json")
 
-    logging.info(f"Checking for latest version config file at: {latest_file}")
-
+    # Check if the file exists
     if os.path.exists(latest_file):
         logging.info("Latest version config file found, loading it.")
         try:
+            # Load the content from the existing file
             with open(latest_file, "r") as f:
-                file_content = f.read().strip()  # Read and strip any whitespace from the content
+                file_content = f.read().strip()  # Read and strip any whitespace
 
-                if not file_content:  # If the content is empty
+                # If the content is empty, update with default values
+                if not file_content:
                     logging.warning(f"{latest_file} is empty, updating it with default values.")
-                    # Write the default configuration to the file
                     default_config = {"version": current_version}
                     with open(latest_file, "w") as f_write:
                         json.dump(default_config, f_write, indent=4)
                     logging.info(f"Updated {latest_file} with default values.")
                     return default_config
 
-                logging.info("Successfully loaded latest file config and its values.")
+                # Try loading the JSON content
+                config = json.loads(file_content)
+                logging.info("Successfully loaded the latest version file.")
 
-            # Ensure 'version' key exists in the config
-            if "version" not in config:
-                logging.warning(f"'version' key missing in config, setting default version {current_version}.")
+                # Update the version in the loaded config
                 config["version"] = current_version
-            return config
+
+                # Save the updated config back to the file
+                with open(latest_file, "w") as f_write:
+                    json.dump(config, f_write, indent=4)
+                logging.info(f"Updated {latest_file} with current version {current_version}.")
+                return config
+
         except json.JSONDecodeError as e:
             logging.error(f"Error reading JSON from {latest_file}: {e}")
-            return {"version": current_version}
+            # If there's an error parsing the file, return the default config
+            default_config = {"version": current_version}
+            with open(latest_file, "w") as f_write:
+                json.dump(default_config, f_write, indent=4)
+            logging.info(f"Rewritten {latest_file} with default values due to error.")
+            return default_config
+
     else:
         logging.warning(f"{latest_file} does not exist, creating it with default values.")
-        # Write the default configuration to the file
+        # If the file doesn't exist, create it with the default configuration
         default_config = {"version": current_version}
         with open(latest_file, "w") as f_write:
             json.dump(default_config, f_write, indent=4)
@@ -122,7 +133,7 @@ def get_current_version():
         return default_config
 
 def fetch_online_version():
-    logging.info("Performing function 'fetch_online_version'")
+    logging.info("Performing function 'fetch_online_version'.")
     try:
         # URL to the latest.json file on GitHub
         online_url = latest_version_url
@@ -143,33 +154,37 @@ def fetch_online_version():
 
 # Function to check if an update is needed
 def check_for_update():
-    # Retrieve the current version info from the latest.json file on your system
-    config = get_current_version()
-    file_version = config["version"]
+    logging.info("Performing function 'check_for_update'.")
+    try:
+        # Fetch the latest version info from the raw URL
+        response = requests.get(latest_version_url)
+        response.raise_for_status()  # Raise an error for invalid responses
+        latest_info = response.json()
 
-    # Fetch the online version info
-    online_config = fetch_online_version()
+        # Check if the 'version' key is in the response
+        if "version" in latest_info:
+            online_version = latest_info["version"]
+            logging.info(f"Current version: {current_version}, File version: {online_version}")
 
-    if online_config:
-        # Get the online version from the fetched file
-        online_version = online_config.get("version", current_version)
-
-        logging.info(f"Online version: {online_version}")
-
-        # Compare versions (this assumes version strings are comparable, adjust if needed)
-        if online_version > file_version:
-            logging.info("Update found! Downloading the latest version...")
-            response = messagebox.askyesno("Update Beschikbaar", f"Er is een update beschikbaar.\nHuidige versie: {file_version}, nieuwe versie: {online_version}\nWil je nu updaten?")
-            if response:
-                download_update()
+            # Compare versions (this is a simple string comparison)
+            if online_version > current_version:
+                response = messagebox.askyesno("Update Beschikbaar",
+                                               f"Er is een update beschikbaar.\nHuidige versie: {current_version}, nieuwe versie: {online_version}\nWil je nu updaten?")
+                if response: # response = yes
+                    logging.info("Update available, downloading update.")
+                    download_update()
+                else:
+                    logging.info("Update available, but user declined to update.")
+            else:
+                logging.info("No update required, the current version is up-to-date.")
         else:
-            logging.info("No update required, the current version is up-to-date.")
-    else:
-        logging.error("Failed to fetch online version info, cannot check for updates.")
+            logging.warning("Version info not found in the response.")
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error while checking for updates: {e}")
 
 def download_update():
+    logging.info("Performing function 'download_update'.")
     try:
-        logging.info(f"Downloading updated file from {update_url}")
         response = requests.get(update_url)
 
         if response.status_code == 200:
@@ -181,18 +196,23 @@ def download_update():
                 f.write(response.content)
             logging.info("Update downloaded and saved successfully.")
 
-            # Close the current script and launch the new one
-            logging.info("Closing current script and launching the updated version.")
+            # Remove the old script and replace it with the updated version
+            logging.info("Removing old script and replacing it with the updated version.")
+
+            old_file_path = os.path.abspath(__file__)  # Get the path of the current running script
+
+            # Remove the old file (if it exists)
+            if os.path.exists(old_file_path):
+                os.remove(old_file_path)
+                logging.info("Old script removed.")
+
+            # Move the new file to replace the old one
+            shutil.move(temp_file_path, old_file_path)
+            logging.info("Updated script is in place.")
 
             # Use os.execv to relaunch the updated script
-            os.execv(sys.executable,
-                     [sys.executable, temp_file_path])  # This will replace the current script with the new one
-
-            # If os.execv fails (it should not), remove the old file and keep the updated one
-            time.sleep(1)  # Wait for the update process to finish
-            os.remove(os.path.abspath(__file__))  # Remove the old script
-            shutil.move(temp_file_path, os.path.abspath(__file__))  # Replace with the new file
-
+            logging.info("Relaunching the updated version of the script.")
+            os.execv(sys.executable, [sys.executable, old_file_path])  # This will replace the current script with the new one
         else:
             logging.error(f"Failed to download update, status code: {response.status_code}")
     except requests.exceptions.RequestException as e:
@@ -966,7 +986,7 @@ def on_close():
 root.protocol("WM_DELETE_WINDOW", on_close)
 
 set_latest_date()
-get_current_version()
+set_current_version()
 check_for_update()
 
 root.mainloop()
