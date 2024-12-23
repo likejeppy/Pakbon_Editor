@@ -1,6 +1,5 @@
 import sys
 import logging
-
 # Configure logging
 logging.basicConfig(
     filename="app.log",  # Log file name
@@ -21,18 +20,69 @@ def exception_handler(exc_type, exc_value, exc_traceback):
 
 sys.excepthook = exception_handler
 
-import tkinter as tk
-import tkinter.font as tkFont
-from tkinter import filedialog, simpledialog, messagebox, ttk
-import openpyxl
-from openpyxl.styles import PatternFill
-from datetime import datetime
-import os
-import shutil
-import json
-import re
-import webbrowser
-import requests
+# Test each import and log its status
+try:
+    import tkinter as tk
+    logging.info("Imported tkinter successfully.")
+except Exception as e:
+    logging.error(f"Failed to import tkinter: {e}")
+try:
+    import tkinter.font as tkFont
+    logging.info("Imported tkinter.font successfully.")
+except Exception as e:
+    logging.error(f"Failed to import tkinter.font: {e}")
+try:
+    from tkinter import filedialog, simpledialog, messagebox, ttk
+    logging.info("Imported tkinter submodules successfully.")
+except Exception as e:
+    logging.error(f"Failed to import tkinter submodules: {e}")
+try:
+    import openpyxl
+    logging.info("Imported openpyxl successfully.")
+except Exception as e:
+    logging.error(f"Failed to import openpyxl: {e}")
+try:
+    from openpyxl.styles import PatternFill
+    logging.info("Imported PatternFill from openpyxl.styles successfully.")
+except Exception as e:
+    logging.error(f"Failed to import PatternFill from openpyxl.styles: {e}")
+try:
+    import datetime
+    logging.info("Imported datetime successfully.")
+except Exception as e:
+    logging.error(f"Failed to import datetime: {e}")
+try:
+    import os
+    logging.info("Imported os successfully.")
+except Exception as e:
+    logging.error(f"Failed to import os: {e}")
+try:
+    import shutil
+    logging.info("Imported shutil successfully.")
+except Exception as e:
+    logging.error(f"Failed to import shutil: {e}")
+try:
+    import json
+    logging.info("Imported json successfully.")
+except Exception as e:
+    logging.error(f"Failed to import json: {e}")
+try:
+    import re
+    logging.info("Imported re successfully.")
+except Exception as e:
+    logging.error(f"Failed to import re: {e}")
+try:
+    import webbrowser
+    logging.info("Imported webbrowser successfully.")
+except Exception as e:
+    logging.error(f"Failed to import webbrowser: {e}")
+try:
+    import requests
+    logging.info("Imported requests successfully.")
+except Exception as e:
+    logging.error(f"Failed to import requests: {e}")
+
+logging.info("All imports attempted.")
 
 # Columns
 col_A = 1
