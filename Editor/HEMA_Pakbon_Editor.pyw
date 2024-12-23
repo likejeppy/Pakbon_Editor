@@ -1,5 +1,9 @@
+current_version = "0.2.1"
 import sys
 import logging
+import subprocess
+import os
+
 # Configure logging
 logging.basicConfig(
     filename="app.log",  # Log file name
@@ -10,7 +14,7 @@ logging.basicConfig(
 
 logging.info(
     "*******************************************************************************************************")  # Initial log entry
-logging.info("Application started.")
+logging.info("Loading application.")
 
 def exception_handler(exc_type, exc_value, exc_traceback):
     if issubclass(exc_type, KeyboardInterrupt):
@@ -20,69 +24,64 @@ def exception_handler(exc_type, exc_value, exc_traceback):
 
 sys.excepthook = exception_handler
 
-# Test each import and log its status
-try:
-    import tkinter as tk
-    logging.info("Imported tkinter successfully.")
-except Exception as e:
-    logging.error(f"Failed to import tkinter: {e}")
-try:
-    import tkinter.font as tkFont
-    logging.info("Imported tkinter.font successfully.")
-except Exception as e:
-    logging.error(f"Failed to import tkinter.font: {e}")
-try:
-    from tkinter import filedialog, simpledialog, messagebox, ttk
-    logging.info("Imported tkinter submodules successfully.")
-except Exception as e:
-    logging.error(f"Failed to import tkinter submodules: {e}")
-try:
-    import openpyxl
-    logging.info("Imported openpyxl successfully.")
-except Exception as e:
-    logging.error(f"Failed to import openpyxl: {e}")
-try:
-    from openpyxl.styles import PatternFill
-    logging.info("Imported PatternFill from openpyxl.styles successfully.")
-except Exception as e:
-    logging.error(f"Failed to import PatternFill from openpyxl.styles: {e}")
-try:
-    import datetime
-    logging.info("Imported datetime successfully.")
-except Exception as e:
-    logging.error(f"Failed to import datetime: {e}")
-try:
-    import os
-    logging.info("Imported os successfully.")
-except Exception as e:
-    logging.error(f"Failed to import os: {e}")
-try:
-    import shutil
-    logging.info("Imported shutil successfully.")
-except Exception as e:
-    logging.error(f"Failed to import shutil: {e}")
-try:
-    import json
-    logging.info("Imported json successfully.")
-except Exception as e:
-    logging.error(f"Failed to import json: {e}")
-try:
-    import re
-    logging.info("Imported re successfully.")
-except Exception as e:
-    logging.error(f"Failed to import re: {e}")
-try:
-    import webbrowser
-    logging.info("Imported webbrowser successfully.")
-except Exception as e:
-    logging.error(f"Failed to import webbrowser: {e}")
-try:
-    import requests
-    logging.info("Imported requests successfully.")
-except Exception as e:
-    logging.error(f"Failed to import requests: {e}")
+def install_requirements():
+    logging.info("Performing function 'install_requirements'.")
 
-logging.info("All imports attempted.")
+    # Check if requirements.txt exists or is empty
+    if not os.path.exists("requirements.txt") or os.stat("requirements.txt").st_size == 0:
+        logging.info("requirements.txt is missing or empty, continuing without installing additional libraries.")
+        return  # Continue the program without exiting the program, but will exit the function
+
+    # Read the requirements.txt file
+    with open("requirements.txt", "r") as f:
+        libraries = f.readlines()
+
+    raised_error = False  # Initialize the raised_error flag outside the loop
+
+    # Temporary list to hold libraries that are still needed (those that failed installation)
+    remaining_libraries = []
+
+    # Install each library from the requirements.txt file
+    for lib in libraries:
+        lib = lib.strip()  # Remove leading/trailing whitespace or newlines
+        if lib:  # Only attempt to install if the library name is not empty
+            logging.info(f"Attempting to install: {lib}")
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", lib])
+                logging.info(f"Successfully installed: {lib}")
+            except Exception as e:
+                raised_error = True
+                logging.error(f"Failed to install {lib}: {e}")
+                # If the installation fails, keep the library for re-trying later
+                remaining_libraries.append(lib)
+
+    # If any installation failed, overwrite the requirements.txt with remaining libraries
+    if raised_error:
+        with open("requirements.txt", "w") as f:
+            for lib in remaining_libraries:
+                f.write(lib + "\n")
+        logging.info("Updated requirements.txt with remaining libraries.")
+        sys.exit(1)  # Exit the program if any installation failed
+    else:
+        # If all libraries were successfully installed, clear the requirements.txt
+        open("requirements.txt", "w").close()  # Empty the file as all libraries are installed
+        logging.info("All libraries installed successfully. requirements.txt is now empty.")
+
+install_requirements()
+
+import tkinter as tk
+import tkinter.font as tkFont
+from tkinter import filedialog, simpledialog, messagebox, ttk
+import openpyxl
+from openpyxl.styles import PatternFill
+import requests
+from datetime import datetime
+import shutil
+import json
+import re
+import webbrowser
+
+logging.info("All dependencies installed and working correctly. Starting application.")
 
 # Columns
 col_A = 1
@@ -97,7 +96,6 @@ new_workbook = None
 searched_order_number = "14101"
 entered_password = ""
 main_password = "wachtwoord"
-current_version = "0.1.1"
 update_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/HEMA_Pakbon_Editor.pyw"
 latest_version_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/latest.json"
 
@@ -1039,7 +1037,7 @@ def on_close():
     save_config(config)
     logging.info("Successfully performed function 'on_close'.")
     logging.info(
-        "*******************************************************************************************************")  # Last log entry
+        "Closing application...")  # Last log entry
     root.destroy()
 
 root.protocol("WM_DELETE_WINDOW", on_close)
