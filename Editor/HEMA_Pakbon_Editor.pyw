@@ -1,3 +1,26 @@
+import sys
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename="app.log",  # Log file name
+    level=logging.DEBUG,  # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
+    datefmt="%d-%m-%Y %H:%M:%S",  # Date format
+)
+
+logging.info(
+    "*******************************************************************************************************")  # Initial log entry
+logging.info("Application started.")
+
+def exception_handler(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+sys.excepthook = exception_handler
+
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import filedialog, simpledialog, messagebox, ttk
@@ -5,12 +28,10 @@ import openpyxl
 from openpyxl.styles import PatternFill
 from datetime import datetime
 import os
-import sys
 import shutil
 import json
 import re
 import webbrowser
-import logging
 import requests
 
 # Columns
@@ -42,18 +63,6 @@ default_config = {
     "window_position": (686, 350),
     "selection_window_position": (686, 350)
 }
-
-# Configure logging
-logging.basicConfig(
-    filename="app.log",  # Log file name
-    level=logging.DEBUG,  # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    format="%(asctime)s - %(levelname)s - %(message)s",  # Log format
-    datefmt="%d-%m-%Y %H:%M:%S",  # Date format
-)
-
-logging.info(
-    "*******************************************************************************************************")  # Initial log entry
-logging.info("Application started.")
 
 def load_config():
     logging.info("Performing function 'load_config'.")
