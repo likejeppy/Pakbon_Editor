@@ -1,4 +1,4 @@
-current_version = "0.2.1"
+current_version = "0.2.2"
 import sys
 import logging
 import subprocess
@@ -61,6 +61,7 @@ def install_requirements():
             for lib in remaining_libraries:
                 f.write(lib + "\n")
         logging.info("Updated requirements.txt with remaining libraries.")
+        messagebox.showerror("Failed to install required libraries.\nSee log for details.")
         sys.exit(1)  # Exit the program if any installation failed
     else:
         # If all libraries were successfully installed, clear the requirements.txt
@@ -126,11 +127,9 @@ def load_config():
 def save_config(config):
     logging.info("Performing function 'save_config'.")
     try:
-        # Convert absolute path to relative path
+        # Ensure the path is absolute
         if "main_file_path" in config and config["main_file_path"] is not None:
-            config["main_file_path"] = os.path.relpath(config["main_file_path"],
-                                                       start=os.path.dirname(os.path.abspath(__file__)))
-
+            config["main_file_path"] = os.path.abspath(config["main_file_path"])
         with open(config_file, "w") as f:
             json.dump(config, f, indent=4)
             logging.info(f"Config file saved successfully at: {config_file}")
@@ -233,7 +232,7 @@ def check_for_update():
                 else:
                     logging.info("Update available, but user declined to update.")
             else:
-                logging.info("No update required, the current version is up-to-date.")
+                logging.info("No update required, current version is the most up-to-date version available.")
         else:
             logging.warning("Version info not found in the response.")
     except requests.exceptions.RequestException as e:
@@ -317,11 +316,12 @@ def browse_main_file():
                     show_file_button.config(bg="lightblue")
                     search_order_button.config(bg="lightblue")
                     new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
+                    set_latest_date()
             logging.info("Successfully performed function 'browse_main_file'.")
             return
         elif not entered_password is None:
             logging.info("Password is wrong, prompting user again.")
-            messagebox.showerror("Error", "Verkeerd wachtwoord opgegeven.")
+            messagebox.showerror("Error", f"Verkeerd wachtwoord opgegeven: {entered_password}.")
         else:
             return
 
