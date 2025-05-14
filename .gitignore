@@ -1,8 +1,8 @@
 # Ignore: 
 Pakbon.xlsx
-HEMA_Launcher.pyw - Shortcut.lnk
-HEMA_Launcher.pyw
+Launcher.pyw - Shortcut.lnk
+Launcher.pyw
 Editor/app.log
 Editor/config.json
-Editor/HEMA_Pakbon_Editor.zip
+Editor/Pakbon_Editor.zip
 .idea

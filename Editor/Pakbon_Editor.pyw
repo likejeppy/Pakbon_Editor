@@ -1,4 +1,7 @@
-current_version = "0.2.2"
+# © 2025 Jeffrey van Houten
+# Alle rechten voorbehouden.
+# Dit programma is auteursrechtelijk beschermd. Gebruik, kopiëren, verspreiden of wijzigen is alleen toegestaan met uitdrukkelijke schriftelijke toestemming van de rechthebbende.
+current_version = "0.2.3"
 import sys
 import logging
 import subprocess
@@ -97,8 +100,8 @@ new_workbook = None
 searched_order_number = "14101"
 entered_password = ""
 main_password = "wachtwoord"
-update_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/HEMA_Pakbon_Editor.pyw"
-latest_version_url = "https://raw.githubusercontent.com/likejeppy/HEMA_Pakbon/refs/heads/main/Editor/latest.json"
+update_url = "https://raw.githubusercontent.com/likejeppy/Pakbon_Editor/refs/heads/main/Editor/Pakbon_Editor.pyw"
+latest_version_url = "https://raw.githubusercontent.com/likejeppy/Pakbon_Editor/refs/heads/main/Editor/latest.json"
 
 # Get the directory of the current script
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -245,7 +248,7 @@ def download_update():
 
         if response.status_code == 200:
             # Save the updated file to a temporary location
-            temp_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HEMA_Pakbon_Editor_updated.pyw")
+            temp_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Pakbon_Editor_updated.pyw")
 
             # Write the content to the new file
             with open(temp_file_path, "wb") as f:
@@ -698,10 +701,9 @@ def confirm_orders(data):
 
     def on_confirm():
         logging.info("Performing function 'on_confirm' in function 'confirm_orders'.")
-        # Loop through each checkbox and append the row index if selected
         for idx, var in enumerate(checkbox_vars):
-            if var.get():  # If the checkbox is selected
-                selected_indices.append(idx)  # Store the index of the selected row
+            if var.get():
+                selected_indices.append(original_indices[idx])  # Map back to original index
         selection_window.destroy()
 
     # Create a new window for order selection
@@ -732,7 +734,6 @@ def confirm_orders(data):
     canvas = tk.Canvas(scrollable_frame, width=max_width)
     scrollbar = tk.Scrollbar(scrollable_frame, orient="vertical", command=canvas.yview)
     scrollable_content = tk.Frame(canvas)
-
     scrollable_content.bind(
         "<Configure>",
         lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
@@ -741,18 +742,23 @@ def confirm_orders(data):
     canvas.create_window((0, 0), window=scrollable_content, anchor="nw")
     canvas.configure(yscrollcommand=scrollbar.set)
 
-    # Enable scrolling with the mouse wheel
-    def on_mouse_wheel(event):
-        canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-
-    canvas.bind_all("<MouseWheel>", on_mouse_wheel)
-
     # Pack the canvas and scrollbar
     canvas.pack(side="left", fill=tk.BOTH, expand=True)
     scrollbar.pack(side="right", fill="y")
 
+    min_to_scroll = 9
+    if len(data) >= min_to_scroll:
+        # Enable scrolling with the mouse wheel
+        def on_mouse_wheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        canvas.bind_all("<MouseWheel>", on_mouse_wheel)
+
+
+    sorted_data = sorted(data, key=lambda row: row[1])  # Sort by the order number (column 1)
+    # Create a list of original indices in the order of sorted_data
+    original_indices = [data.index(row) for row in sorted_data]
     checkbox_vars = []
-    for idx, row in enumerate(data):
+    for idx, row in enumerate(sorted_data):
         order_number = row[1]  # Assuming row is a tuple like (col_A, col_B, col_C), and order number is in col_B
 
         # Separate the last four characters and make them bold
@@ -953,7 +959,7 @@ def set_latest_date():
 
 # GUI setup
 root = tk.Tk()
-root.title(f"HEMA Pakbon - jeffvh {current_version}")
+root.title(f"Pakbon Editor - jeffvh {current_version}")
 
 logging.info("Loading config file.")
 config = load_config()
@@ -961,7 +967,7 @@ config = load_config()
 frame = tk.Frame(root, padx=20, pady=10)
 frame.pack()
 
-tk.Label(frame, text="HEMA Pakbon", font=("Arial", 16)).grid(row=0, column=0, columnspan=2, pady=(0, 0))
+tk.Label(frame, text="Pakbon Editor", font=("Arial", 16)).grid(row=0, column=0, columnspan=2, pady=(0, 0))
 
 lastloaded = tk.Label(frame, text="", font=("Arial", 10))
 lastloaded.grid(row=1, column=0, columnspan=2, pady=(0, 0))

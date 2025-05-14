@@ -2,7 +2,7 @@ import subprocess
 import getpass
 
 # Path to the Python script
-script_path = r"C:/Users/{}/Documents/GitHub/HEMA_Pakbon/Editor/requirements.py".format(getpass.getuser())
+script_path = r"C:/Users/{}/Documents/GitHub/Pakbon_Editor/Editor/requirements.py".format(getpass.getuser())
 
 # Command to run the script in the command prompt (cmd)
 cmd = f"start cmd /C python \"{script_path}\"" # change /C to /K to not auto close terminal

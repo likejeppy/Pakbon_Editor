@@ -1,0 +1,29 @@
+PAKBON_EDITOR – LICENTIEVOORWAARDEN
+
+Softwaretitel: Pakbon_Editor
+Versie: 0.2.3
+Auteur: Jeffrey van Houten
+Organisatie: HEMA Delft de Hoven Passage, filiaalnummer 0337
+Datum: 2 mei 2025
+
+AUTEURSRECHT EN GEBRUIKSRECHTEN
+
+Deze software is auteursrechtelijk beschermd. Alle versies (verleden, heden en toekomst) vallen onder het intellectuele eigendom van de auteur, Jeffrey van Houten. Alle rechten zijn voorbehouden.
+
+TOEGESTAAN GEBRUIK
+
+Deze software mag uitsluitend gebruikt worden binnen HEMA Delft de Hoven Passage (filiaalnummer 0337). Elk gebruik buiten deze vestiging of door onbevoegde personen is zonder schriftelijke toestemming van de auteur verboden.
+
+WIJZIGINGEN EN VERSPEIDING
+
+Het is niet toegestaan om de broncode of functionaliteit van deze software aan te passen, te kopiëren of te verspreiden. Gebruikers mogen enkel inhoudelijke feedback geven via het opgegeven contactadres van de auteur. Alleen de auteur, Jeffrey van Houten, is bevoegd wijzigingen door te voeren.
+
+AANSPRAKELIJKHEID
+
+Deze software wordt geleverd “zoals deze is”. De auteur aanvaardt geen enkele aansprakelijkheid voor directe of indirecte schade voortvloeiend uit het gebruik van deze software.
+
+CONTACT
+
+Voor vragen of toestemming kunt u contact opnemen met de auteur via het e-mailadres van de auteur: jeffvh@protonmail.com
+
+© Jeffrey van Houten – Alle rechten voorbehouden.
