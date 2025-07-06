@@ -1,7 +1,7 @@
 # © 2025 Jeffrey van Houten
 # Alle rechten voorbehouden.
 # Dit programma is auteursrechtelijk beschermd. Gebruik, kopiëren, verspreiden of wijzigen is alleen toegestaan met uitdrukkelijke schriftelijke toestemming van de rechthebbende.
-current_version = "0.2.3"
+current_version = "0.2.4"
 import sys
 import logging
 import subprocess
@@ -443,7 +443,7 @@ def add_data():
     sheet_name = str(sheet_name).replace("/", "-")
 
     if sheet_name in main_workbook.sheetnames:
-        response = messagebox.askyesno("Waarschuwing", f"Pakbon met de datum: {sheet_name}\nbestaat al, toch doorgaan?")
+        response = messagebox.askyesno("Waarschuwing", f"Pakbon van {sheet_name}\nis al eerder verwerkt, toch doorgaan?")
         if not response:  # response = no
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             return
@@ -513,7 +513,7 @@ def add_data():
     # Save changes
     main_workbook.save(main_file_path)
     logging.info("Successfully performed function 'add_data'.")
-    messagebox.showinfo("Success", f"Data met succes toegevoegd aan sheet '{sheet_name}'!")
+    messagebox.showinfo("Success", f"Pakbon van '{sheet_name}' succesvul verwerkt!")
     new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
     reload_main_workbook()
 
