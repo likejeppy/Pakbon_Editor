@@ -1,7 +1,7 @@
 # © 2025 Jeffrey van Houten
 # Alle rechten voorbehouden.
 # Dit programma is auteursrechtelijk beschermd. Gebruik, kopiëren, verspreiden of wijzigen is alleen toegestaan met uitdrukkelijke schriftelijke toestemming van de rechthebbende.
-current_version = "0.2.4"
+current_version = "0.3.0"
 import sys
 import logging
 import subprocess
@@ -363,7 +363,7 @@ def browse_new_file():
     return False
 
 def remove_time_if_datetime(value):
-    logging.info("Performing remove_time_if_datetime.")
+    #logging.info("Performing remove_time_if_datetime.") #removed to decrease log spam
     return value.date() if isinstance(value, datetime) else value
 
 def read_column_data(sheet, column):
@@ -459,7 +459,7 @@ def add_data():
     # messagebox.showerror("test", f"Selected indices: {selected_indices}")  # Debugging selected indices
     if sheet_name in main_workbook.sheetnames:
         response = messagebox.askyesnocancel("Waarschuwing",
-                                             f"Oude data overschrijven?")
+                                             f"Oude data vervangen?")
         if response == True:
             new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
             del main_workbook[sheet_name]
@@ -617,7 +617,7 @@ def search_order():
             return
 
     global searched_order_number
-    searched_order_number = "14101"
+    searched_order_number = ""
     while True:
         logging.info("Performing function 'search_order'.")
         if not main_workbook:
@@ -682,7 +682,7 @@ def search_order():
         if results:
             logging.info(f"Searched for order: {searched_order_number}, order was successfully found.")
             messagebox.showinfo("Bestelling Gevonden", "\n".join(results))
-            return
+            #return #enable to auto close search panel after successfully found onrder
         else:
             logging.info(f"Searched for order: {searched_order_number}, but order not found.")
             messagebox.showerror("Bestelling Niet Gevonden", f"Het ordernummer: {searched_order_number}\nis niet gevonden.")
@@ -753,12 +753,16 @@ def confirm_orders(data):
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
         canvas.bind_all("<MouseWheel>", on_mouse_wheel)
 
-
-    sorted_data = sorted(data, key=lambda row: row[1])  # Sort by the order number (column 1)
-    # Create a list of original indices in the order of sorted_data
-    original_indices = [data.index(row) for row in sorted_data]
+    # Pair original index with each row BEFORE sorting
+    indexed_data = list(enumerate(data))
+    # Sort by last 4 characters of the order number (row[1][1] is the order number)
+    sorted_data = sorted(indexed_data, key=lambda row: row[1][1][-4:])
+    # Split sorted data into separate lists
+    original_indices = [idx for idx, row in sorted_data]
+    sorted_rows = [row for idx, row in sorted_data]
+    # messagebox.showinfo("test", original_indices) # have to be unique to handle duplicates!
     checkbox_vars = []
-    for idx, row in enumerate(sorted_data):
+    for idx, row in enumerate(sorted_rows):
         order_number = row[1]  # Assuming row is a tuple like (col_A, col_B, col_C), and order number is in col_B
 
         # Separate the last four characters and make them bold
