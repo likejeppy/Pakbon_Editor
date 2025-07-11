@@ -47,4 +47,4 @@ CONTACT
 
 Voor vragen of feedback kunt u contact opnemen met Jeffrey van Houten via jeffvh@protonmail.com.
 
-© Jeffrey – Alle rechten voorbehouden.
+© Jeffrey van Houten – Alle rechten voorbehouden.
