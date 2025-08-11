@@ -3,7 +3,8 @@ PAKBON_EDITOR – GEBRUIKERSHANDLEIDING
 Softwaretitel: Pakbon_Editor
 Auteur: Jeffrey van Houten
 Filiaal: HEMA Delft De Hoven Passage, filiaalnummer 0337
-Datum laatste update: 11 juli 2025
+Datum laatste update: 11 augustus 2025
+Meest recente versie: 0.3.1
 
 DOEL VAN DE SOFTWARE
 
