@@ -1,7 +1,7 @@
 # © 2025 Jeffrey van Houten
 # Alle rechten voorbehouden.
 # Dit programma is auteursrechtelijk beschermd. Gebruik, kopiëren, verspreiden of wijzigen is alleen toegestaan met uitdrukkelijke schriftelijke toestemming van de rechthebbende.
-current_version = "0.3.0"
+current_version = "0.3.1"
 import sys
 import logging
 import subprocess
@@ -97,7 +97,7 @@ main_file_path = None
 new_file_path = None
 main_workbook = None
 new_workbook = None
-searched_order_number = "14101"
+searched_order_number = ""
 entered_password = ""
 main_password = "wachtwoord"
 update_url = "https://raw.githubusercontent.com/likejeppy/Pakbon_Editor/refs/heads/main/Editor/Pakbon_Editor.pyw"
@@ -226,14 +226,17 @@ def check_for_update():
             logging.info(f"Current version: {current_version}, File version: {online_version}")
 
             # Compare versions (this is a simple string comparison)
+            #test = 1
             if online_version > current_version:
+            #if test == 1:
                 response = messagebox.askyesno("Update Beschikbaar",
-                                               f"Er is een update beschikbaar.\nHuidige versie: {current_version}, nieuwe versie: {online_version}\nWil je nu updaten?")
+                                               f"Een update is nodig om dit progamma te blijven gebruiken.\nHuidige versie: {current_version}, nieuwe versie: {online_version}\nWil je nu updaten?")
                 if response: # response = yes
                     logging.info("Update available, downloading update.")
                     download_update()
                 else:
                     logging.info("Update available, but user declined to update.")
+                    exit()
             else:
                 logging.info("No update required, current version is the most up-to-date version available.")
         else:
@@ -513,7 +516,7 @@ def add_data():
     # Save changes
     main_workbook.save(main_file_path)
     logging.info("Successfully performed function 'add_data'.")
-    messagebox.showinfo("Success", f"Pakbon van '{sheet_name}' succesvul verwerkt!")
+    messagebox.showinfo("Success", f"Pakbon van '{sheet_name}' succesvol verwerkt!")
     new_file_button.config(text="Controleer Nieuwe Pakbon", bg="lightblue")
     reload_main_workbook()
 
