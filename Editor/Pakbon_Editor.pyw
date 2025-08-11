@@ -230,7 +230,7 @@ def check_for_update():
             if online_version > current_version:
             #if test == 1:
                 response = messagebox.askyesno("Update Beschikbaar",
-                                               f"Een update is nodig om dit progamma te blijven gebruiken.\nHuidige versie: {current_version}, nieuwe versie: {online_version}\nWil je nu updaten?")
+                                               f"Een update is vereist om dit progamma te blijven gebruiken.\nHuidige versie: {current_version}, nieuwe versie: {online_version}\nWil je nu updaten?")
                 if response: # response = yes
                     logging.info("Update available, downloading update.")
                     download_update()
